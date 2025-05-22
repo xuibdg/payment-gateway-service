@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.ZonedDateTime;
+import java.sql.Timestamp;
 import java.util.Map;
 
 @Entity
@@ -20,8 +20,8 @@ import java.util.Map;
 @Builder
 public class PaymentGatewayCallback {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long pgCallbackId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String pgCallbackId;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "payment_gateway_id")
@@ -42,16 +42,16 @@ public class PaymentGatewayCallback {
 
     @Column(nullable = false)
     @CreationTimestamp
-    private ZonedDateTime receivedAt;
+    private Timestamp receivedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CallbackProcessingStatus processingStatus = CallbackProcessingStatus.RECEIVED;
 
-    private ZonedDateTime processedAt;
+    private Timestamp processedAt;
 
     private String processingNotes;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 }
