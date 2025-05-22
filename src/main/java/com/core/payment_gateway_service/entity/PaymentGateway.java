@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Entity
 @Table(name = "payment_gateways")
@@ -18,7 +19,7 @@ import java.util.Map;
 public class PaymentGateway {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long paymentGatewayId;
+    private UUID paymentGatewayId;
 
     @Column(nullable = false, unique = true, length = 100)
     private String gatewayName;

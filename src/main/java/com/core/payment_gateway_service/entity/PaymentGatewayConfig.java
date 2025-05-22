@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "payment_gateway_configs",
@@ -20,7 +21,7 @@ import java.time.ZonedDateTime;
 public class PaymentGatewayConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long pgConfigId;
+    private UUID pgConfigId;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "payment_gateway_id")

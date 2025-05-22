@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Entity
 @Table(name = "payment_gateway_callbacks")
@@ -21,7 +22,7 @@ import java.util.Map;
 public class PaymentGatewayCallback {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long pgCallbackId;
+    private UUID pgCallbackId;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "payment_gateway_id")
