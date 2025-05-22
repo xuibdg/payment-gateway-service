@@ -1,0 +1,6 @@
+package com.core.payment_gateway_service.enums;
+
+public enum TransactionStatus {
+    PENDING_INITIATION, INITIATED, PENDING_CUSTOMER_ACTION, PENDING_CONFIRMATION, SUCCESSFUL,
+    FAILED, CANCELLED, EXPIRED, REFUNDED, PARTIALLY_REFUNDED
+}
