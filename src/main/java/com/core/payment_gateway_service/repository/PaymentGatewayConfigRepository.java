@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface PaymentGatewayConfigRepository extends JpaRepository<PaymentGatewayConfig, UUID> {
+public interface PaymentGatewayConfigRepository extends JpaRepository<PaymentGatewayConfig, String> {
 }

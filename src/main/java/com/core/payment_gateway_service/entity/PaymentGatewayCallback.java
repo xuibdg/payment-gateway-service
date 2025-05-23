@@ -21,8 +21,8 @@ import java.util.UUID;
 @Builder
 public class PaymentGatewayCallback {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private UUID pgCallbackId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String pgCallbackId;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "payment_gateway_id")

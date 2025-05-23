@@ -18,8 +18,8 @@ import java.util.UUID;
 @Builder
 public class PaymentGateway {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private UUID paymentGatewayId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String paymentGatewayId;
 
     @Column(nullable = false, unique = true, length = 100)
     private String gatewayName;
