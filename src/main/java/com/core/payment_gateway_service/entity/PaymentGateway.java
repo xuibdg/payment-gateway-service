@@ -5,10 +5,10 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
-import java.util.Map;
-import java.util.UUID;
+
+import java.sql.Timestamp;
+import java.util.List;
+
 
 @Entity
 @Table(name = "payment_gateways")
@@ -20,6 +20,10 @@ public class PaymentGateway {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String paymentGatewayId;
+
+
+    @OneToMany(mappedBy = "paymentGateway", cascade = CascadeType.ALL)
+    private List<PaymentGatewayConfig> configs;
 
     @Column(nullable = false, unique = true, length = 100)
     private String gatewayName;
@@ -33,8 +37,8 @@ public class PaymentGateway {
     private Boolean isActive = true;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 
     @UpdateTimestamp
-    private ZonedDateTime updatedAt;
+    private Timestamp updatedAt;
 }

@@ -12,7 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.sql.Timestamp;
 import java.util.Map;
 import java.util.UUID;
 
@@ -62,9 +62,9 @@ public class PaymentGatewayTransaction {
 
     private String failureReason;
 
-    private ZonedDateTime initiatedAt;
-    private ZonedDateTime completedAt;
-    private ZonedDateTime expiresAt;
+    private Timestamp initiatedAt;
+    private Timestamp completedAt;
+    private Timestamp expiresAt;
 
     // Define these fields once saving/loan/escrow entities exist
     private Long targetSavingAccountId;
@@ -72,8 +72,8 @@ public class PaymentGatewayTransaction {
     private Long targetEscrowAccountId;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 
     @UpdateTimestamp
-    private ZonedDateTime updatedAt;
+    private Timestamp updatedAt;
 }
