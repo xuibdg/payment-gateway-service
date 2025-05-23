@@ -5,8 +5,10 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+
 import java.sql.Timestamp;
 import java.util.List;
+
 
 @Entity
 @Table(name = "payment_gateways")
@@ -18,6 +20,7 @@ public class PaymentGateway {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String paymentGatewayId;
+
 
     @OneToMany(mappedBy = "paymentGateway", cascade = CascadeType.ALL)
     private List<PaymentGatewayConfig> configs;

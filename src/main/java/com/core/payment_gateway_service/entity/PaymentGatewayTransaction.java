@@ -14,6 +14,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Map;
+import java.util.UUID;
 
 @Entity
 @Table(name = "payment_gateway_transactions")
