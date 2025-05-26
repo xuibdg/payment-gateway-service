@@ -9,17 +9,19 @@ import com.core.payment_gateway_service.entity.PaymentGatewayConfig;
 import com.core.payment_gateway_service.repository.PaymentGatewayConfigRepository;
 import com.core.payment_gateway_service.repository.PaymentGatewayRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Data
+@AllArgsConstructor
 public class PaymentGatewayServiceImpl implements PaymentGatewayService{
 
     @Autowired
