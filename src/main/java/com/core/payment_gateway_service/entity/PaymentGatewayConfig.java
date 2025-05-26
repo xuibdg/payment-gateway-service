@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.ZonedDateTime;
-import java.util.UUID;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "payment_gateway_configs",
@@ -42,8 +41,9 @@ public class PaymentGatewayConfig {
     private Boolean isActive = true;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 
     @UpdateTimestamp
-    private ZonedDateTime updatedAt;
+    private Timestamp updatedAt;
+
 }

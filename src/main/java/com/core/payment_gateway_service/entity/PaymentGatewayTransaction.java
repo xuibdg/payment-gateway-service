@@ -12,7 +12,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,7 +28,7 @@ public class PaymentGatewayTransaction {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String pgTransactionId;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "payment_gateway_id")
     private PaymentGateway paymentGateway;
 
@@ -62,18 +63,26 @@ public class PaymentGatewayTransaction {
 
     private String failureReason;
 
-    private ZonedDateTime initiatedAt;
-    private ZonedDateTime completedAt;
-    private ZonedDateTime expiresAt;
+    private Timestamp initiatedAt;
+    private Timestamp completedAt;
+    private Timestamp expiresAt;
 
     // Define these fields once saving/loan/escrow entities exist
-    private Long targetSavingAccountId;
-    private Long targetLoanAccountId;
-    private Long targetEscrowAccountId;
+    @ManyToOne
+    @JoinColumn(name = "saving_account_id")
+    private SavingAccount targetSavingAccountId;
+
+    @ManyToOne
+    @JoinColumn(name = "loan_account_id")
+    private LoanAccount targetLoanAccountId;
+
+    @ManyToOne
+    @JoinColumn(name = "escrow_account_id")
+    private EscrowAccount targetEscrowAccountId;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 
     @UpdateTimestamp
-    private ZonedDateTime updatedAt;
+    private Timestamp updatedAt;
 }
