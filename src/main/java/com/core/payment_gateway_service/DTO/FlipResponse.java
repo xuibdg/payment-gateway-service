@@ -1,5 +1,6 @@
 package com.core.payment_gateway_service.DTO;
 
+import com.core.payment_gateway_service.entity.PaymentGatewayTransaction;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -16,6 +17,7 @@ public class FlipResponse {
     private String expiredDate;
 
     private BilPaymentEntity billPayment;
+    private PaymentGatewayTransaction paymentGatewayTransaction;
     private Customer customer;
 
     public FlipResponse(String status, String message) {

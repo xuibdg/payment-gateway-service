@@ -85,38 +85,4 @@ public class BillPaymentController {
         BillPaymentResponse getBillId = billPaymentService.getBillId(billId);
         return BaseResponse.ok(getBillId);
     }
-
-
-    @GetMapping("/hallo")
-    public String hello() {
-        log.info("Hello endpoint called");
-        return "Hello, this is a test endpoint!";
-    }
-
-    @PostMapping("/test")
-    public String test(@RequestBody Map<String, String> request) {
-        log.info("Test endpoint called with request: {}", request);
-        return "Test endpoint received: " + request;
-    }
-
-    @PutMapping("/test-update")
-    public String testUpdate(@RequestBody Map<String, String> request) {
-        log.info("Test update endpoint called with request: {}", request);
-        return "Test update endpoint received: " + request;
-    }
-
-    @DeleteMapping("/test-delete")
-    public String testDelete(@RequestParam String id) {
-        if (id == null || id.isEmpty()) {
-            try {
-                log.info("Test delete endpoint called with id: {}", id);
-                return "Test delete endpoint received id: " + id;
-            } catch (Exception a) {
-                log.error("Error in test delete endpoint: {}", a.getMessage());
-                return "Error in test delete endpoint: " + a.getMessage();
-            }
-        }
-        log.info("Test delete endpoint called with id: {}", id);
-        return "Test delete endpoint received id: " + id;
-    }
 }

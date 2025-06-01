@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update  # bisa diganti 'validate' / 'none' / 'create' sesuai kebutuhan
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:

@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -21,25 +22,23 @@ import java.util.UUID;
 @Builder
 public class PaymentGatewayCallback {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "pg_callback_id", nullable = false, updatable = false)
     private String pgCallbackId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "payment_gateway_id")
-    private PaymentGateway paymentGateway;
-
     @ManyToOne
-    @JoinColumn(name = "pg_transaction_id")
+    @JoinColumn(name = "pg_transaction_id", nullable = true)
     private PaymentGatewayTransaction paymentGatewayTransaction;
 
     @Column(length = 255)
     private String externalTransactionId;
 
-    @Convert(converter = JsonMapConverter.class)
-    private Map<String, Object> rawPayload;
+    @Column(columnDefinition = "longtext")
+    private String rawPayload;
 
-    @Convert(converter = JsonMapConverter.class)
-    private Map<String, Object> headers;
+    @Column(columnDefinition = "longtext")
+    private String headers;
 
     @Column(nullable = false)
     @CreationTimestamp

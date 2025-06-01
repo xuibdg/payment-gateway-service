@@ -2,19 +2,19 @@ package com.core.payment_gateway_service.service;
 
 import com.core.payment_gateway_service.DTO.*;
 import com.core.payment_gateway_service.config.FlipConfiguration;
-import com.core.payment_gateway_service.entity.BillPayment;
-import com.core.payment_gateway_service.entity.EscrowAccount;
-import com.core.payment_gateway_service.entity.PaymentGateway;
-import com.core.payment_gateway_service.entity.PaymentGatewayTransaction;
+import com.core.payment_gateway_service.entity.*;
+import com.core.payment_gateway_service.enums.CallbackProcessingStatus;
 import com.core.payment_gateway_service.enums.TransactionStatus;
 import com.core.payment_gateway_service.enums.TransactionType;
 import com.core.payment_gateway_service.repository.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,8 +29,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -46,21 +49,28 @@ public class PaymentFlip {
     private final PaymentGatewayTransactionRepository paymentGatewayTransactionRepository;
     private final PaymentGatewayConfigRepository paymentGatewayConfigRepository;
     private final EscrowAccountRepository escrowAccountRepository;
+    private final LoanAccountRepository loanAccountRepository;
+    private final SavingAccountRepository savingAccountRepository;
+    private final PaymentGatewayCallbackRepository paymentGatewayCallbackRepository;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public FlipResponse billProses(BillPaymentRequest request) {
         String id = "JWT" + UUID.randomUUID();
+        String billId = null;
 
-        LocalDateTime expiredDate = LocalDateTime.now().plusHours(1);
+        LocalDateTime expiredDate = LocalDateTime.now().plusHours(3);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String formattedDate = expiredDate.format(formatter);
 
-
+        if (request.getAmount() == null) {
+            throw new IllegalArgumentException("Amount tidak boleh null");
+        }
         MultiValueMap<String, String> requestFlip = new LinkedMultiValueMap<>();
         requestFlip.add("title", request.getTitle());
         requestFlip.add("type", request.getType());
-        requestFlip.add("amount", request.getAmount().toString());
-        requestFlip.add("step", request.getStep().toString());
+        requestFlip.add("amount", (request.getAmount().toString()));
+        requestFlip.add("step", (request.getStep().toString()));
         requestFlip.add("sender_name", request.getSenderName());
         requestFlip.add("sender_email", request.getSenderEmail());
         requestFlip.add("sender_bank", request.getSenderBank());
@@ -74,6 +84,7 @@ public class PaymentFlip {
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(requestFlip, headers);
 
+
         try {
             FlipResponse response = restTemplate.postForObject(
                     flipConfig.getApiKeyBillPaymentUrl(),
@@ -83,7 +94,7 @@ public class PaymentFlip {
 
 
             if (response != null && response.getBillPayment() != null) {
-
+                billId = response.getLinkId(); // <-- simpan ID-nya
                 BillPayment bill = new BillPayment();
                 bill.setId(response.getLinkId());
                 bill.setTitle(request.getTitle());
@@ -107,34 +118,69 @@ public class PaymentFlip {
 
                 billPaymentRepository.save(bill);
 
-//                PaymentGateway paymentGateway = PaymentGateway.builder()
-//                        .paymentGatewayId(id)
-//                        .gatewayName(request.getSenderName())
-//                        .gatewayCode("FLIP")
-//                        .isActive(true)
-//                        .createdAt(Timestamp.valueOf(LocalDateTime.now()))
-//                        .updatedAt(Timestamp.valueOf(LocalDateTime.now()))
-//                        .build();
-//                paymentGatewayRepository.save(paymentGateway);
 
-                PaymentGatewayTransaction paymentGatewayTransaction =  new PaymentGatewayTransaction();
-                paymentGatewayTransaction.setPaymentGateway(paymentGatewayTransaction.getPaymentGateway());
-                paymentGatewayTransaction.setPgTransactionId(response.getBillPayment().getId());
-                paymentGatewayTransaction.setAmount(BigDecimal.valueOf(response.getBillPayment().getAmount()));
-                paymentGatewayTransaction.setCreatedAt(response.getBillPayment().getCreated_at());
-               // paymentGatewayTransaction.setExpiresAt(response.getBillPayment().get);
-                paymentGatewayTransaction.setCurrencyCode("IDR");
-                paymentGatewayTransaction.setExternalTransactionId(response.getLinkId());
-                paymentGatewayTransaction.setInternalReferenceId(id);
-              //paymentGatewayTransaction.setPaymentMethodDetails(response.getBillPayment().getReceiverBankAccount().getBankCode());
-              // paymentGatewayTransaction.setRequestPayload();
-                paymentGatewayTransaction.setStatus(TransactionStatus.PENDING_INITIATION);
-                paymentGatewayTransaction.setTargetEscrowAccountId(paymentGatewayTransaction.getTargetEscrowAccountId());
-                paymentGatewayTransaction.setTargetLoanAccountId(paymentGatewayTransaction.getTargetLoanAccountId());
-                paymentGatewayTransaction.setTargetSavingAccountId(paymentGatewayTransaction.getTargetSavingAccountId());
-                paymentGatewayTransaction.setTransactionType(TransactionType.INBOUND_FUNDING);
-                paymentGatewayTransaction.setInitiatedAt(Timestamp.valueOf(LocalDateTime.now()));
-                paymentGatewayTransactionRepository.save(paymentGatewayTransaction);
+                PaymentGatewayTransaction pgTx = new PaymentGatewayTransaction();
+                pgTx.setInternalReferenceId(id);
+                pgTx.setExternalTransactionId(response.getLinkId());
+                pgTx.setTransactionType(TransactionType.INBOUND_FUNDING);
+                pgTx.setAmount(request.getAmount());
+                pgTx.setCurrencyCode("IDR");
+                pgTx.setStatus(TransactionStatus.PENDING_INITIATION);
+                pgTx.setInitiatedAt(Timestamp.valueOf(LocalDateTime.now()));
+                pgTx.setCreatedAt( Timestamp.valueOf(LocalDateTime.now()));
+                pgTx.setExpiresAt(Timestamp.valueOf(expiredDate));
+                pgTx.setRequestPayload(objectMapper.convertValue(request, new TypeReference<>() {}));
+                pgTx.setResponsePayload(objectMapper.convertValue(response, new TypeReference<>() {}));
+
+                Map<String, Object> methodDetail = new HashMap<>();
+                methodDetail.put("sender_bank", request.getSenderBank());
+                methodDetail.put("bank_type", request.getSenderBankType());
+                methodDetail.put("sender_name", request.getSenderName());
+                pgTx.setPaymentMethodDetails(methodDetail);
+
+                if (request.getPaymentGatewayId() != null) {
+                    pgTx.setPaymentGatewayId(
+                            paymentGatewayRepository.findById(request.getPaymentGatewayId())
+                                    .orElseThrow(() -> new RuntimeException("Gateway not found"))
+                    );
+                }
+                if (request.getTargetSavingAccountId() != null) {
+                    pgTx.setTargetSavingAccountId(
+                            savingAccountRepository.findById(request.getTargetSavingAccountId())
+                                    .orElseThrow(() -> new RuntimeException("Gateway not found"))
+                    );
+                }
+
+                if (request.getTargetLoanAccountId() != null) {
+                    pgTx.setTargetLoanAccountId(
+                            loanAccountRepository.findById(request.getTargetLoanAccountId())
+                                    .orElseThrow(() -> new RuntimeException("Gateway not found"))
+                    );
+                }
+                if (request.getTargetEscrowAccountId() != null) {
+                    pgTx.setTargetEscrowAccountId(
+                            escrowAccountRepository.findById(request.getTargetEscrowAccountId())
+                                    .orElseThrow(() -> new RuntimeException("Gateway not found"))
+                    );
+                }
+
+
+//                pgTx.setPaymentGatewayId(paymentGatewayRepository.findById(request.getPaymentGatewayId())
+//                        .orElseThrow(() -> new RuntimeException("Gateway not found")));
+//                pgTx.setTargetSavingAccountId(
+//                         request.getTargetSavingAccountId() == null ? null :
+//                                savingAccountRepository.findById(request.getTargetSavingAccountId())
+//                                        .orElseThrow(() -> new RuntimeException("Saving account not found")));
+//                pgTx.setTargetLoanAccountId(
+//                        request.getTargetLoanAccountId() == null ? null :
+//                                loanAccountRepository.findById(request.getTargetLoanAccountId())
+//                                        .orElseThrow(() -> new RuntimeException("Loan account not found")));
+//                pgTx.setTargetEscrowAccountId(
+//                        request.getTargetEscrowAccountId() == null ? null :
+//                                escrowAccountRepository.findById(request.getTargetEscrowAccountId())
+//                                        .orElseThrow(() -> new RuntimeException("Escrow account not found")));
+                    paymentGatewayTransactionRepository.save(pgTx);
+
 
 
                 return response;
@@ -144,29 +190,37 @@ public class PaymentFlip {
         } catch (Exception e) {
             log.error("Error saat create bill ke Flip: {}", e.getMessage());
 
-            billPaymentRepository.findById(id).ifPresent(bill -> {
-                bill.setPaymentStatus("Failed");
-                billPaymentRepository.save(bill);
-            });
+            if (billId != null) {
+                billPaymentRepository.findById(billId).ifPresent(bill -> {
+                    bill.setStatus("Failed");
+                    billPaymentRepository.save(bill);
+                });
+            }
 
-            return new FlipResponse("ERROR", "Gagal membuat bill: " + e.getMessage());
+            throw new RuntimeException("Gagal membuat bill: " + e.getMessage(), e);
+
         }
     }
 
     public BillPaymentResponse callback(String dataJson, String token) throws JsonProcessingException {
+        // Validasi token callback
         if (!token.equals(flipConfig.getCallbackValidasiToken())) {
-            throw new RuntimeException ("Invalid token from callback");
+            throw new RuntimeException("Invalid token from callback");
         }
 
+        // Konfigurasi mapper
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+        // Parse payload JSON ke DTO
         BillPaymentRequest callbackData = mapper.readValue(dataJson, BillPaymentRequest.class);
 
+        // Ambil data bill/inquiry dari database
         BillPayment inquiry = billPaymentRepository.findByPaymentId(callbackData.getId())
-                .orElseThrow(() -> new RuntimeException ("Inquiry not found"));
+                .orElseThrow(() -> new RuntimeException("Inquiry not found"));
 
+        // Cek apakah sudah selesai
         String currentStatus = inquiry.getPaymentStatus();
         if ("SUCCESSFUL".equalsIgnoreCase(currentStatus) ||
                 "FAILED".equalsIgnoreCase(currentStatus) ||
@@ -177,7 +231,17 @@ public class PaymentFlip {
         inquiry.setStatus(callbackData.getStatus());
         inquiry.setPaymentStatus(callbackData.getStatus());
 
-        return mapToResponse(billPaymentRepository.save(inquiry));
+        PaymentGatewayCallback callback = new PaymentGatewayCallback();
+        callback.setRawPayload(dataJson);
+        callback.setHeaders("token=" + token);
+        callback.setProcessingStatus(CallbackProcessingStatus.RECEIVED);
+        callback.setReceivedAt(Timestamp.from(Instant.now()));
+
+        paymentGatewayCallbackRepository.save(callback);
+
+        billPaymentRepository.save(inquiry);
+
+        return mapToResponse(inquiry);
     }
 
 

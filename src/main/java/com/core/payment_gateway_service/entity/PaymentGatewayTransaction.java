@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
@@ -25,12 +26,14 @@ import java.util.UUID;
 @Builder
 public class PaymentGatewayTransaction {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "pg_transaction_id", columnDefinition = "CHAR(36)")
     private String pgTransactionId;
 
     @ManyToOne
     @JoinColumn(name = "payment_gateway_id")
-    private PaymentGateway paymentGateway;
+    private PaymentGateway paymentGatewayId;
 
     @Column(nullable = false, unique = true)
     private String internalReferenceId;
@@ -43,7 +46,7 @@ public class PaymentGatewayTransaction {
     private TransactionType transactionType;
 
     @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal amount;
+    private Integer amount;
 
     @Column(length = 3)
     private String currencyCode = "IDR";
@@ -53,12 +56,15 @@ public class PaymentGatewayTransaction {
     private TransactionStatus status = TransactionStatus.PENDING_INITIATION;
 
     @Convert(converter = JsonMapConverter.class)
+    @Column(columnDefinition = "longtext")
     private Map<String, Object> paymentMethodDetails;
 
     @Convert(converter = JsonMapConverter.class)
+    @Column(columnDefinition = "longtext")
     private Map<String, Object> requestPayload;
 
     @Convert(converter = JsonMapConverter.class)
+    @Column(columnDefinition = "longtext")
     private Map<String, Object> responsePayload;
 
     private String failureReason;
@@ -73,11 +79,11 @@ public class PaymentGatewayTransaction {
     private SavingAccount targetSavingAccountId;
 
     @ManyToOne
-    @JoinColumn(name = "loan_account_id")
+    @JoinColumn(name = "loan_account_id", nullable = true)
     private LoanAccount targetLoanAccountId;
 
     @ManyToOne
-    @JoinColumn(name = "escrow_account_id")
+    @JoinColumn(name = "escrow_account_id", nullable = true)
     private EscrowAccount targetEscrowAccountId;
 
     @CreationTimestamp
