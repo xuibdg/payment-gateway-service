@@ -1,6 +1,14 @@
 package com.core.payment_gateway_service.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +16,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.ZonedDateTime;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "payment_gateway_configs",
@@ -19,8 +27,8 @@ import java.time.ZonedDateTime;
 @Builder
 public class PaymentGatewayConfig {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long pgConfigId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String pgConfigId;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "payment_gateway_id")
@@ -41,8 +49,9 @@ public class PaymentGatewayConfig {
     private Boolean isActive = true;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 
     @UpdateTimestamp
-    private ZonedDateTime updatedAt;
+    private Timestamp updatedAt;
+
 }
