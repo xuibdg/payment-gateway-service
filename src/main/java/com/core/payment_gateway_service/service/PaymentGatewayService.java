@@ -1,12 +1,11 @@
 package com.core.payment_gateway_service.service;
 
-import com.core.payment_gateway_service.DTO.PaymentGatewayConfigRequest;
-import com.core.payment_gateway_service.DTO.PaymentGatewayConfigResponse;
-import com.core.payment_gateway_service.DTO.PaymentGatewayRequest;
-import com.core.payment_gateway_service.DTO.PaymentGatewayResponse;
+import com.core.payment_gateway_service.dto.PaymentGatewayConfigRequest;
+import com.core.payment_gateway_service.dto.PaymentGatewayConfigResponse;
+import com.core.payment_gateway_service.dto.PaymentGatewayRequest;
+import com.core.payment_gateway_service.dto.PaymentGatewayResponse;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface PaymentGatewayService {
     String createGateway(PaymentGatewayRequest paymentGatewayRequest);

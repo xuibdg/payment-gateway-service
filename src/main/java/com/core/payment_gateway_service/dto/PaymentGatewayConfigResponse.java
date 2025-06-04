@@ -1,4 +1,4 @@
-package com.core.payment_gateway_service.DTO;
+package com.core.payment_gateway_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,10 +11,11 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentGatewayResponse {
-    private String paymentGatewayId;
-    private String gatewayName;
-    private String gatewayCode;
+public class PaymentGatewayConfigResponse {
+    private String pgConfigId;
+    private String configName;
+    private String configValue; // bisa disensor nanti kalau `isSensitive` = true
+    private Boolean isSensitive;
     private String description;
     private Boolean isActive;
     private Timestamp createdAt;
