@@ -9,5 +9,4 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, String> {
-    Optional<PaymentGateway> findByGatewayCode(String gatewayCode);
 }

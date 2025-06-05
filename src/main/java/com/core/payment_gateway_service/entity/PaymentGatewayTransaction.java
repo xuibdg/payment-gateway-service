@@ -32,7 +32,7 @@ public class PaymentGatewayTransaction {
     private String pgTransactionId;
 
     @ManyToOne
-    @JoinColumn(name = "payment_gateway_id")
+    @JoinColumn(name = "payment_gateway_id", nullable = false)
     private PaymentGateway paymentGatewayId;
 
     @Column(nullable = false, unique = true)
@@ -73,18 +73,9 @@ public class PaymentGatewayTransaction {
     private Timestamp completedAt;
     private Timestamp expiresAt;
 
-    // Define these fields once saving/loan/escrow entities exist
     @ManyToOne
-    @JoinColumn(name = "saving_account_id")
-    private SavingAccount targetSavingAccountId;
-
-    @ManyToOne
-    @JoinColumn(name = "loan_account_id", nullable = true)
-    private LoanAccount targetLoanAccountId;
-
-    @ManyToOne
-    @JoinColumn(name = "escrow_account_id", nullable = true)
-    private EscrowAccount targetEscrowAccountId;
+    @JoinColumn(name = "escrow_account_id", nullable = false)
+    private EscrowAccount escrowAccountId;
 
     @CreationTimestamp
     private Timestamp createdAt;

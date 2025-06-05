@@ -29,7 +29,11 @@ public class PaymentGatewayCallback {
 
     @ManyToOne
     @JoinColumn(name = "pg_transaction_id", nullable = true)
-    private PaymentGatewayTransaction paymentGatewayTransaction;
+    private PaymentGatewayTransaction pgTransactionId;
+
+    @ManyToOne
+    @JoinColumn(name = "payment_gateway_id")
+    private PaymentGateway paymentGatewayId;
 
     @Column(length = 255)
     private String externalTransactionId;
