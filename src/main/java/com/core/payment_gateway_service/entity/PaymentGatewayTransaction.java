@@ -3,7 +3,16 @@ package com.core.payment_gateway_service.entity;
 import com.core.payment_gateway_service.enums.TransactionStatus;
 import com.core.payment_gateway_service.enums.TransactionType;
 import com.core.payment_gateway_service.service.JsonMapConverter;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,12 +20,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.UUID;
 
 @Entity
 @Table(name = "payment_gateway_transactions")
@@ -32,7 +37,7 @@ public class PaymentGatewayTransaction {
     private String pgTransactionId;
 
     @ManyToOne
-    @JoinColumn(name = "payment_gateway_id")
+    @JoinColumn(name = "payment_gateway_id", nullable = false)
     private PaymentGateway paymentGatewayId;
 
     @Column(nullable = false, unique = true)
@@ -73,18 +78,9 @@ public class PaymentGatewayTransaction {
     private Timestamp completedAt;
     private Timestamp expiresAt;
 
-    // Define these fields once saving/loan/escrow entities exist
     @ManyToOne
-    @JoinColumn(name = "saving_account_id")
-    private SavingAccount targetSavingAccountId;
-
-    @ManyToOne
-    @JoinColumn(name = "loan_account_id", nullable = true)
-    private LoanAccount targetLoanAccountId;
-
-    @ManyToOne
-    @JoinColumn(name = "escrow_account_id", nullable = true)
-    private EscrowAccount targetEscrowAccountId;
+    @JoinColumn(name = "escrow_account_id", nullable = false)
+    private EscrowAccount escrowAccountId;
 
     @CreationTimestamp
     private Timestamp createdAt;

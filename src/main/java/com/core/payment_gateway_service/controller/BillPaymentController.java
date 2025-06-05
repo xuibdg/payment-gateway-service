@@ -1,6 +1,10 @@
-package com.core.payment_gateway_service.Controller;
+package com.core.payment_gateway_service.controller;
 
-import com.core.payment_gateway_service.DTO.*;
+import com.core.payment_gateway_service.dto.BaseResponse;
+import com.core.payment_gateway_service.dto.BilPaymentSearch;
+import com.core.payment_gateway_service.dto.BillPaymentRequest;
+import com.core.payment_gateway_service.dto.BillPaymentResponse;
+import com.core.payment_gateway_service.dto.FlipResponse;
 import com.core.payment_gateway_service.entity.BillPayment;
 import com.core.payment_gateway_service.service.PaymentFlip;
 import lombok.RequiredArgsConstructor;
@@ -12,9 +16,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor

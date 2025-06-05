@@ -1,4 +1,4 @@
-package com.core.payment_gateway_service.DTO;
+package com.core.payment_gateway_service.dto;
 
 
 import lombok.Builder;

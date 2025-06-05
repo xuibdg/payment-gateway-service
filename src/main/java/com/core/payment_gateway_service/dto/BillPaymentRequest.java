@@ -1,10 +1,6 @@
-package com.core.payment_gateway_service.DTO;
+package com.core.payment_gateway_service.dto;
 
 
-import com.core.payment_gateway_service.entity.EscrowAccount;
-import com.core.payment_gateway_service.entity.LoanAccount;
-import com.core.payment_gateway_service.entity.PaymentGateway;
-import com.core.payment_gateway_service.entity.SavingAccount;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -51,7 +47,5 @@ public class BillPaymentRequest {
     private PaymentGatewayTransactionRequest paymentGatewayTransactionRequest;
 
     private String paymentGatewayId;
-    private String targetSavingAccountId;
-    private String targetLoanAccountId;
-    private String targetEscrowAccountId;
+    private String escrowAccountId;
 }
