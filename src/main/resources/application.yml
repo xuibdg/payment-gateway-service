@@ -1,3 +1,5 @@
+server:
+  port: 8080
 spring:
   application:
     name: payment-gateway-service
@@ -22,4 +24,9 @@ flip:
   callback-validasi-token: "$2y$13$qxPxoKY9yrkq5qLSmsijtuUEWxKuE7nZI/uJntyGzXi2FN/i2SL.O"
   disbursment-url: "https://bigflip.id/big_sandbox_api/v3/disbursement"
   api-key-bill-payment-url: "https://bigflip.id/big_sandbox_api/v2/pwf/bill"
+
+logging:
+  level:
+    com.core.payment_gateway_service.service.FlipReconciliationService: INFO
+    org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor: DEBUG
 

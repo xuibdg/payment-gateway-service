@@ -23,6 +23,7 @@ public class PaymentGateway {
 
 
     @OneToMany(mappedBy = "paymentGateway", cascade = CascadeType.ALL)
+    @ToString.Exclude
     private List<PaymentGatewayConfig> configs;
 
     @Column(nullable = false, unique = true, length = 100)

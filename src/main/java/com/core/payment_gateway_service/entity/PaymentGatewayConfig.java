@@ -1,10 +1,7 @@
 package com.core.payment_gateway_service.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -23,6 +20,7 @@ public class PaymentGatewayConfig {
     private String pgConfigId;
 
     @ManyToOne(optional = false)
+    @ToString.Exclude
     @JoinColumn(name = "payment_gateway_id")
     private PaymentGateway paymentGateway;
 
