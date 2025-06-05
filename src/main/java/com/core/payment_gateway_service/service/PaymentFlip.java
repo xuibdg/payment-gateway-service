@@ -1,8 +1,11 @@
 package com.core.payment_gateway_service.service;
 
-import com.core.payment_gateway_service.DTO.*;
 import com.core.payment_gateway_service.config.FlipConfiguration;
-import com.core.payment_gateway_service.entity.*;
+import com.core.payment_gateway_service.dto.*;
+import com.core.payment_gateway_service.entity.BillPayment;
+import com.core.payment_gateway_service.entity.Customer;
+import com.core.payment_gateway_service.entity.PaymentGatewayCallback;
+import com.core.payment_gateway_service.entity.PaymentGatewayTransaction;
 import com.core.payment_gateway_service.enums.CallbackProcessingStatus;
 import com.core.payment_gateway_service.enums.TransactionStatus;
 import com.core.payment_gateway_service.enums.TransactionType;
@@ -14,13 +17,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +29,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
