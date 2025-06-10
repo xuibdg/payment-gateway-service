@@ -355,6 +355,105 @@ public class PaymentFlip {
 
         return mapToResponse(bill);
     }
+//    public void clbk(String dataJson, String token){
+//        try {
+//            // 1. Validasi token
+//            if (!validateToken(token)) {
+//                throw new SecurityException("Invalid token");
+//            }
+//            // 2. Parse JSON
+//            CallbackResponse data = objectMapper.readValue(dataJson, CallbackResponse.class);
+//
+//            // 3. Proses callback
+//            PaymentGatewayCallback pgCallback = new PaymentGatewayCallback();
+//            pgCallback.setHeaders(token);
+//            pgCallback.setRawPayload(dataJson);
+//            paymentGatewayCallbackRepository.save(pgCallback);
+//
+//        } catch (JsonProcessingException e) {
+//            log.error("Invalid callback data format", e);
+//            throw new RuntimeException("Invalid callback data");
+//        }
+//        // Validasi token callback
+//        if (!token.equals(flipConfig.getCallbackValidasiToken())) {
+//            throw new RuntimeException("Invalid token from callback");
+//        }
+//
+//    }
+    private boolean validateToken(String token) {
+        // Implementasi validasi token
+        return token != null && token.startsWith("secure_");
+    }
+
+    public Map<String, Object> handleCallbacks(String dataJson, String token) {
+        try {
+            // 1. Validasi token
+            validateCallbackToken(token);
+
+            // 2. Parse JSON secara dinamis
+            Map<String, Object> callbackData = parseCallbackData(dataJson);
+
+            // 3. Simpan ke database
+            saveCallbackRecord(token, dataJson, callbackData);
+
+            // 4. Bangun response berdasarkan request
+            return buildAdaptiveResponse(callbackData);
+
+        } catch (SecurityException e) {
+            log.warn("Unauthorized callback attempt: {}", e.getMessage());
+            return Map.of(
+                    "status", "ERROR",
+                    "code", "UNAUTHORIZED",
+                    "message", e.getMessage()
+            );
+        } catch (Exception e) {
+            log.error("Callback processing failed", e);
+            return Map.of(
+                    "status", "ERROR",
+                    "code", "PROCESSING_FAILED",
+                    "message", e.getMessage()
+            );
+        }
+    }
+
+    private void validateCallbackToken(String token) {
+        if (!flipConfig.getCallbackValidasiToken().equals(token)) {
+            throw new SecurityException("Invalid callback token");
+        }
+    }
+
+    private Map<String, Object> parseCallbackData(String json) throws JsonProcessingException {
+        return objectMapper.readValue(json,
+                new TypeReference<Map<String, Object>>() {});
+    }
+
+    private void saveCallbackRecord(String token, String rawJson, Map<String, Object> parsedData) {
+        PaymentGatewayCallback record = new PaymentGatewayCallback();
+        record.setHeaders(token);
+        record.setRawPayload(rawJson);
+        paymentGatewayCallbackRepository.save(record);
+    }
+
+    private Map<String, Object> buildAdaptiveResponse(Map<String, Object> requestData) {
+        Map<String, Object> response = new LinkedHashMap<>();
+
+        // Contoh penyesuaian response berdasarkan request
+        if (requestData.containsKey("transaction_id")) {
+            response.put("transaction_status", "RECEIVED");
+            response.put("transaction_id", requestData.get("transaction_id"));
+        }
+
+        if (requestData.containsKey("amount")) {
+            response.put("amount_processed", requestData.get("amount"));
+        }
+
+        // Header standar
+        response.put("status", "SUCCESS");
+        response.put("processed_at", Instant.now().toString());
+        response.put("reference_id", UUID.randomUUID().toString());
+
+        return response;
+    }
 
 
 }
