@@ -66,7 +66,7 @@ public class BillPaymentController {
     }
 
     @PostMapping("/transbackV2")
-    public ResponseEntity<?> handleBillPaymentV2(HttpServletRequest request) throws IOException {// Ambil data bill payment link dari service
+    public BaseResponse<?> handleBillPaymentV2(HttpServletRequest request) throws IOException {// Ambil data bill payment link dari service
         String contentType = request.getContentType();
 
         if (contentType != null && contentType.contains("application/json")) {
@@ -77,8 +77,7 @@ public class BillPaymentController {
                 FlipResponse response = paymentFlip.billProses(billPaymentRequest);
 
                 if (response == null) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(new FlipResponse("ERROR", "Response from Flip is null"));
+                    return BaseResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Response from Flip is null");
                 }
 
                 // Hardcode token
@@ -93,13 +92,12 @@ public class BillPaymentController {
                 // Langsung panggil callback secara internal
                 paymentFlip.callback(dataJson, token);
 
-                return ResponseEntity.ok(response.getBillPayment().getReceiverBankAccount().getAccountNumber());
+                return BaseResponse.ok(response.getBillPayment().getReceiverBankAccount().getAccountNumber());
             } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new FlipResponse("ERROR", e.getMessage()));
+                return BaseResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             }
         } else {
-            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("Unsupported content type");
+            return BaseResponse.error(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported content type");
         }
     }
 
