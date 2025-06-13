@@ -3,16 +3,24 @@ package com.core.payment_gateway_service.entity;
 import com.core.payment_gateway_service.enums.TransactionStatus;
 import com.core.payment_gateway_service.enums.TransactionType;
 import com.core.payment_gateway_service.service.JsonMapConverter;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.sql.Timestamp;
 import java.util.Map;
 
 @Entity
@@ -23,12 +31,14 @@ import java.util.Map;
 @Builder
 public class PaymentGatewayTransaction {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long pgTransactionId;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "pg_transaction_id", columnDefinition = "CHAR(36)")
+    private String pgTransactionId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "payment_gateway_id")
-    private PaymentGateway paymentGateway;
+    @ManyToOne
+    @JoinColumn(name = "payment_gateway_id", nullable = false)
+    private PaymentGateway paymentGatewayId;
 
     @Column(nullable = false, unique = true)
     private String internalReferenceId;
@@ -41,7 +51,7 @@ public class PaymentGatewayTransaction {
     private TransactionType transactionType;
 
     @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal amount;
+    private Integer amount;
 
     @Column(length = 3)
     private String currencyCode = "IDR";
@@ -51,28 +61,32 @@ public class PaymentGatewayTransaction {
     private TransactionStatus status = TransactionStatus.PENDING_INITIATION;
 
     @Convert(converter = JsonMapConverter.class)
+    @Column(columnDefinition = "longtext")
     private Map<String, Object> paymentMethodDetails;
 
     @Convert(converter = JsonMapConverter.class)
+    @Column(columnDefinition = "longtext")
     private Map<String, Object> requestPayload;
 
     @Convert(converter = JsonMapConverter.class)
+    @Column(columnDefinition = "longtext")
     private Map<String, Object> responsePayload;
 
     private String failureReason;
 
-    private ZonedDateTime initiatedAt;
-    private ZonedDateTime completedAt;
-    private ZonedDateTime expiresAt;
+    private Timestamp initiatedAt;
+    private Timestamp completedAt;
+    private Timestamp expiresAt;
 
-    // Define these fields once saving/loan/escrow entities exist
-    private Long targetSavingAccountId;
-    private Long targetLoanAccountId;
-    private Long targetEscrowAccountId;
+    @ManyToOne
+    @JoinColumn(name = "escrow_account_id", nullable = false)
+    private EscrowAccount escrowAccountId;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 
     @UpdateTimestamp
-    private ZonedDateTime updatedAt;
+    private Timestamp updatedAt;
+
+    private String billLink;
 }
