@@ -1,17 +1,23 @@
 package com.core.payment_gateway_service.entity;
 
 import com.core.payment_gateway_service.enums.CallbackProcessingStatus;
-import com.core.payment_gateway_service.service.JsonMapConverter;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
+import java.sql.Timestamp;
 
-import java.time.ZonedDateTime;
-import java.util.Map;
-import java.util.UUID;
 
 @Entity
 @Table(name = "payment_gateway_callbacks")
@@ -21,38 +27,40 @@ import java.util.UUID;
 @Builder
 public class PaymentGatewayCallback {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "pg_callback_id", nullable = false, updatable = false)
     private String pgCallbackId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "payment_gateway_id")
-    private PaymentGateway paymentGateway;
+    @ManyToOne
+    @JoinColumn(name = "pg_transaction_id", nullable = true)
+    private PaymentGatewayTransaction pgTransactionId;
 
     @ManyToOne
-    @JoinColumn(name = "pg_transaction_id")
-    private PaymentGatewayTransaction paymentGatewayTransaction;
+    @JoinColumn(name = "payment_gateway_id")
+    private PaymentGateway paymentGatewayId;
 
     @Column(length = 255)
     private String externalTransactionId;
 
-    @Convert(converter = JsonMapConverter.class)
-    private Map<String, Object> rawPayload;
+    @Column(columnDefinition = "longtext")
+    private String rawPayload;
 
-    @Convert(converter = JsonMapConverter.class)
-    private Map<String, Object> headers;
+    @Column(columnDefinition = "longtext")
+    private String headers;
 
     @Column(nullable = false)
     @CreationTimestamp
-    private ZonedDateTime receivedAt;
+    private Timestamp receivedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CallbackProcessingStatus processingStatus = CallbackProcessingStatus.RECEIVED;
 
-    private ZonedDateTime processedAt;
+    private Timestamp processedAt;
 
     private String processingNotes;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 }
