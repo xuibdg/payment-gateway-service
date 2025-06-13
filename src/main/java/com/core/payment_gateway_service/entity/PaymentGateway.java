@@ -1,13 +1,24 @@
 package com.core.payment_gateway_service.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
-import java.util.Map;
+
+import java.sql.Timestamp;
+import java.util.List;
+
 
 @Entity
 @Table(name = "payment_gateways")
@@ -17,8 +28,12 @@ import java.util.Map;
 @Builder
 public class PaymentGateway {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long paymentGatewayId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String paymentGatewayId;
+
+
+    @OneToMany(mappedBy = "paymentGateway", cascade = CascadeType.ALL)
+    private List<PaymentGatewayConfig> configs;
 
     @Column(nullable = false, unique = true, length = 100)
     private String gatewayName;
@@ -32,8 +47,8 @@ public class PaymentGateway {
     private Boolean isActive = true;
 
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private Timestamp createdAt;
 
     @UpdateTimestamp
-    private ZonedDateTime updatedAt;
+    private Timestamp updatedAt;
 }
