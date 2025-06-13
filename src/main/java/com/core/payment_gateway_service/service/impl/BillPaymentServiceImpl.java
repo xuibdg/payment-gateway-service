@@ -4,6 +4,7 @@ import com.core.payment_gateway_service.config.FlipConfiguration;
 import com.core.payment_gateway_service.repository.PaymentGatewayRepository;
 import com.core.payment_gateway_service.repository.PaymentGatewayTransactionRepository;
 import com.core.payment_gateway_service.service.BillPaymentService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class BillPaymentServiceImpl implements BillPaymentService {
     private FlipConfiguration flipConfig;
 
     @Override
+    @Transactional
     public ResponseEntity<?> getBillPaymentLink(String linkId, String  billPaymentId, String paymentGatewayId, String pgTransactionId) {
 
         String url = billPaymentLinkUrl.replace("{linkId}", linkId);
