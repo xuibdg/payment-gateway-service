@@ -15,6 +15,7 @@ public class FlipConfiguration {
     private String callbackValidasiToken;
     private String disbursmentUrl;
     private String apiKeyBillPaymentUrl;
+    private String apiKeyGetBillPaymentLink;
 
     @Bean
     public RestTemplate restTemplate(){

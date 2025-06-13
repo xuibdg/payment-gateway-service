@@ -87,4 +87,6 @@ public class PaymentGatewayTransaction {
 
     @UpdateTimestamp
     private Timestamp updatedAt;
+
+    private String billLink;
 }

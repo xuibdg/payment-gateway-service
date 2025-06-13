@@ -1,24 +1,24 @@
 package com.core.payment_gateway_service.controller;
 
+import com.core.payment_gateway_service.config.FlipConfiguration;
 import com.core.payment_gateway_service.dto.*;
 import com.core.payment_gateway_service.entity.BillPayment;
-import com.core.payment_gateway_service.repository.PaymentGatewayCallbackRepository;
 import com.core.payment_gateway_service.repository.PaymentGatewayTransactionRepository;
+import com.core.payment_gateway_service.service.BillPaymentService;
 import com.core.payment_gateway_service.service.PaymentFlip;
-import jakarta.validation.Valid;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,16 +26,22 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/bill-payment")
 public class BillPaymentController {
 
-    private final PaymentFlip billPaymentService;
+    private final PaymentFlip paymentFlip;
+
+    private final BillPaymentService billPaymentService;
+
+    private final FlipConfiguration flipConfig;
+
+    private final PaymentGatewayTransactionRepository paymentGatewayTransactionRepository;
 
     @PostMapping(value = "/process-bill-payment", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FlipResponse> processBillPayment(@RequestBody BillPaymentRequest request) {
         try {
-            FlipResponse response = billPaymentService.billProses(request);
+            FlipResponse response = paymentFlip.billProses(request);
 
             if (response == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new FlipResponse("ERR9OR", "Response from Flip is null"));
+                        .body(new FlipResponse("ERROR", "Response from Flip is null"));
             }
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -48,8 +54,8 @@ public class BillPaymentController {
     public String handleCallback(@RequestParam("data") String dataJson,
                                  @RequestParam("token") String token) {
         try {
-            billPaymentService.callback(dataJson, token);
-            return "OK";
+            paymentFlip.callback(dataJson, token);
+            return "Callback received";
         } catch (SecurityException se) {
             log.warn("Unauthorized callback received: {}", se.getMessage());
             return "Unauthorized";
@@ -58,73 +64,42 @@ public class BillPaymentController {
             return "Error";
         }
     }
-//    @PostMapping("test-clbk")
-//    public ResponseEntity<Map<String, Object>> handlingCallback(
-//            @RequestHeader("X-Callback-Token") String token,
-//            @RequestBody String rawJsonBody) {
-//
-//        Map<String, Object> response = billPaymentService.handleCallbacks(rawJsonBody, token);
-//        HttpStatus status = "SUCCESS".equals(response.get("status"))
-//                ? HttpStatus.OK
-//                : HttpStatus.BAD_REQUEST;
-//
-//        return ResponseEntity.status(status).body(response);
-//    }
-    @PostMapping(value = "/process-and-callback-parallel", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CombinedResponse> processAndCallbackParallel(
-                                                                       @Valid @RequestBody CombinedRequest request) {
-        Map<String, Object> response = billPaymentService.handleCallbacks(request.getCallbackData(), request.getCallbackToken());
 
-        HttpStatus status = "SUCCESS".equals(response.get("status"))
-                ? HttpStatus.OK
-                : HttpStatus.BAD_REQUEST;
-        ResponseEntity.status(status);
+    @PostMapping("/transbackV2")
+    public ResponseEntity<?> handleBillPaymentV2(HttpServletRequest request) throws IOException {// Ambil data bill payment link dari service
+        String contentType = request.getContentType();
 
-        try {
-            CompletableFuture<FlipResponse> paymentFuture = CompletableFuture.supplyAsync(() ->
-                    billPaymentService.billProses(BillPaymentRequest.builder()
-                            .title(request.getTitle())
-                            .type(request.getType())
-                            .amount(request.getAmount())
-                            .step(request.getStep())
-                            .senderBank(request.getSenderBank())
-                            .senderBankType(request.getSenderBankType())
-                            .senderName(request.getSenderName())
-                            .senderEmail(request.getSenderEmail())
-                            .customerPhone(request.getCustomerPhone())
-                            .customerAddress(request.getCustomerAddress())
-                            .paymentGatewayId(request.getPaymentGatewayId())
-                            .escrowAccountId(request.getEscrowAccountId())
-                            .build()));
+        if (contentType != null && contentType.contains("application/json")) {
+            // === REQUEST PERTAMA: Buat BillPayment + Transaction + Callback ===
+            BillPaymentRequest billPaymentRequest = new ObjectMapper().readValue(request.getInputStream(), BillPaymentRequest.class);
 
-            CompletableFuture<String> callbackFuture = CompletableFuture.supplyAsync(() -> {
-                try {
-                    billPaymentService.callback(request.getCallbackData(), request.getCallbackToken());
-                    //billPaymentService.callback(dataJson, token);
-                    return "OK";
-                } catch (SecurityException se) {
-                    log.warn("Unauthorized callback received: {}", se.getMessage());
-                    return "Unauthorized";
-                } catch (Exception e) {
-                    log.error("Callback error: {}", e.getMessage(), e);
-                    return "Error";
+            try {
+                FlipResponse response = paymentFlip.billProses(billPaymentRequest);
+
+                if (response == null) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(new FlipResponse("ERROR", "Response from Flip is null"));
                 }
-            });
 
-            CompletableFuture.allOf(paymentFuture, callbackFuture).join();
+                // Hardcode token
+                String token = flipConfig.getCallbackValidasiToken();
 
-            FlipResponse paymentResponse = paymentFuture.get();
-            String callbackResponse = callbackFuture.get();
+                String paymentGatewayId = billPaymentRequest.getPaymentGatewayId();
+                String pgTransactionId = paymentGatewayTransactionRepository.findLatestPendingTransactionByEscrowAccountId(billPaymentRequest.getEscrowAccountId()).get();
+                ResponseEntity<?> billPaymentLinkResponse = billPaymentService.getBillPaymentLink(response.getLinkId(), response.getBillPayment().getId(), paymentGatewayId, pgTransactionId);
+                ObjectMapper objectMapper = new ObjectMapper();
+                String dataJson = objectMapper.writeValueAsString(billPaymentLinkResponse.getBody());
 
-            return ResponseEntity.ok(new CombinedResponse(
-                    paymentResponse,
-                    callbackResponse,
-                    "SUCCESS",
-                    "Both operations completed in parallel"));
+                // Langsung panggil callback secara internal
+                paymentFlip.callback(dataJson, token);
 
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new CombinedResponse(null, null, "ERROR", e.getMessage()));
+                return ResponseEntity.ok("SUCCESS - Bill Payment Processed and Callback Handled");
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new FlipResponse("ERROR", e.getMessage()));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("Unsupported content type");
         }
     }
 
@@ -138,7 +113,7 @@ public class BillPaymentController {
     ) {
         Sort.Direction direction = Sort.Direction.fromOptionalString(sortDirection).orElse(Sort.Direction.DESC);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<BillPayment> result = billPaymentService.findAllViewsByRequestId(bilPaymentSearch, pageable);
+        Page<BillPayment> result = paymentFlip.findAllViewsByRequestId(bilPaymentSearch, pageable);
         return BaseResponse.ok(result);
     }
 
@@ -147,7 +122,7 @@ public class BillPaymentController {
             @PathVariable String billId,
             @RequestBody BillPaymentRequest request) {
 
-        BillPaymentResponse updatedBill = billPaymentService.updateBill(billId, request);
+        BillPaymentResponse updatedBill = paymentFlip.updateBill(billId, request);
         return BaseResponse.ok(updatedBill);
     }
 
@@ -155,7 +130,12 @@ public class BillPaymentController {
     public BaseResponse<BillPaymentResponse> getBillId(
             @PathVariable String billId
     ) {
-        BillPaymentResponse getBillId = billPaymentService.getBillId(billId);
+        BillPaymentResponse getBillId = paymentFlip.getBillId(billId);
         return BaseResponse.ok(getBillId);
+    }
+
+    @GetMapping("/link/{linkId}")
+    public ResponseEntity<?> getBillPaymentLink(@PathVariable String linkId) {
+        return billPaymentService.getBillPaymentLink(linkId, "", "", "");
     }
 }
