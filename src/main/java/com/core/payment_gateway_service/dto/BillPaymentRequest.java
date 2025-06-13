@@ -48,4 +48,5 @@ public class BillPaymentRequest {
 
     private String paymentGatewayId;
     private String escrowAccountId;
+    private String internalReferenceId;
 }

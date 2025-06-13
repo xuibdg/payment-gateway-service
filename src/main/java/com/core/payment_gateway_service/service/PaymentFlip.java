@@ -53,7 +53,7 @@ public class PaymentFlip {
 
     @Transactional
     public FlipResponse billProses(BillPaymentRequest request) {
-        String id = "JWT" + UUID.randomUUID();
+        String prefixReference="JWT-";
         String billId = null;
 
         LocalDateTime expiredDate = LocalDateTime.now().plusHours(3);
@@ -166,7 +166,7 @@ public class PaymentFlip {
 
 
                 PaymentGatewayTransaction pgTx = new PaymentGatewayTransaction();
-                pgTx.setInternalReferenceId(id);
+                pgTx.setInternalReferenceId(request.getInternalReferenceId().isEmpty() ? prefixReference+UUID.randomUUID(): prefixReference + request.getInternalReferenceId());
                 pgTx.setExternalTransactionId(response.getLinkId());
                 pgTx.setTransactionType(TransactionType.INBOUND_FUNDING);
                 pgTx.setAmount(request.getAmount());

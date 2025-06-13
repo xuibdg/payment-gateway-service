@@ -93,7 +93,7 @@ public class BillPaymentController {
                 // Langsung panggil callback secara internal
                 paymentFlip.callback(dataJson, token);
 
-                return ResponseEntity.ok("SUCCESS - Bill Payment Processed and Callback Handled");
+                return ResponseEntity.ok(response.getBillPayment().getReceiverBankAccount().getAccountNumber());
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(new FlipResponse("ERROR", e.getMessage()));
