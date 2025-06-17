@@ -8,6 +8,7 @@ import com.core.payment_gateway_service.entity.PaymentGateway;
 import com.core.payment_gateway_service.entity.PaymentGatewayConfig;
 import com.core.payment_gateway_service.repository.PaymentGatewayConfigRepository;
 import com.core.payment_gateway_service.repository.PaymentGatewayRepository;
+import com.core.payment_gateway_service.utils.BaseResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -77,7 +78,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService{
     }
 
     @Override
-    public void addConfig(String paymentGatewayId, PaymentGatewayConfigRequest paymentGatewayConfigRequest) {
+    public String addConfig(String paymentGatewayId, PaymentGatewayConfigRequest paymentGatewayConfigRequest) {
         PaymentGateway paymentGateway = paymentGatewayRepository.findById(paymentGatewayId).orElseThrow(()-> new EntityNotFoundException("Payment Gateway ID Not Found"));
 
         PaymentGatewayConfig paymentGatewayConfig = paymentGatewayConfigRepository.findByPaymentGateway(paymentGateway).stream().filter(c ->c.getConfigName().equalsIgnoreCase(paymentGatewayConfigRequest.getConfigName())).findFirst().orElse(new PaymentGatewayConfig());
@@ -90,6 +91,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService{
         paymentGatewayConfig.setDescription(paymentGatewayConfigRequest.getDescription());
         paymentGatewayConfig.setUpdatedAt(Timestamp.from(Instant.now()));
         paymentGatewayConfigRepository.saveAndFlush(paymentGatewayConfig);
+        return "Success create config";
     }
 
     @Override
