@@ -24,6 +24,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -183,12 +184,14 @@ public class PaymentFlip {
                 methodDetail.put("bank_type", request.getSenderBankType());
                 methodDetail.put("sender_name", request.getSenderName());
                 pgTx.setPaymentMethodDetails(methodDetail);
+                log.info(methodDetail.toString());
 
                 pgTx.setPaymentGatewayId(paymentGatewayRepository.findById(request.getPaymentGatewayId()).
                         orElseThrow(() -> new RuntimeException("Payment Gateway Id not found")));
 
-                pgTx.setEscrowAccountId(escrowAccountRepository.findById(request.getEscrowAccountId())
-                        .orElseThrow(() -> new RuntimeException("Escrow Account Id not found")));
+//Untung menjalankan escrow account detail to released, validasi ini tidak bisa digunakan
+//                pgTx.setEscrowAccountId(escrowAccountRepository.findById(request.getEscrowAccountId())
+//                        .orElseThrow(() -> new RuntimeException("Escrow Account Id not found")));
 
                     paymentGatewayTransactionRepository.save(pgTx);
 

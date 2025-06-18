@@ -11,6 +11,7 @@ import java.util.UUID;
 public interface PaymentGatewayTransactionRepository extends JpaRepository<PaymentGatewayTransaction, String> {
     Optional<PaymentGatewayTransaction> findByExternalTransactionId(String paymentId);
 
-    @Query(value = "SELECT pg_transaction_id from payment_gateway_transactions pgt where status = 'PENDING_INITIATION' and escrow_account_id = :escrowAccountId order by created_at desc limit 1", nativeQuery = true)
+    //and escrow_account_id = :escrowAccountId tambahkan sebelum 'order' ini jika ingin menggunakan findByEscrowAccountID(untuk method tidak langsung relase di escrow account)
+    @Query(value = "SELECT pg_transaction_id from payment_gateway_transactions pgt where status = 'PENDING_INITIATION' order by created_at desc limit 1", nativeQuery = true)
     Optional<String> findLatestPendingTransactionByEscrowAccountId(String escrowAccountId);
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static com.core.payment_gateway_service.utils.BaseResponse.buildSuccessResponse;
+import static com.core.payment_gateway_service.controller.BaseCRUDController.buildSuccessResponse;
 
 
 @RestController

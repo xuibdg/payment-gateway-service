@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-import static com.core.payment_gateway_service.utils.BaseResponse.buildSuccessResponse;
+import static com.core.payment_gateway_service.controller.BaseCRUDController.buildErrorResponse;
+import static com.core.payment_gateway_service.controller.BaseCRUDController.buildSuccessResponse;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -69,7 +71,7 @@ public class BillPaymentController {
     }
 
     @PostMapping("/transbackV2")
-    public BaseResponse handleBillPaymentV2(HttpServletRequest request) throws IOException {// Ambil data bill payment link dari service
+    BaseResponse<String> handleBillPaymentV2(HttpServletRequest request) throws IOException {// Ambil data bill payment link dari service
         String contentType = request.getContentType();
 
         if (contentType != null && contentType.contains("application/json")) {
@@ -97,10 +99,10 @@ public class BillPaymentController {
 
                 return buildSuccessResponse(response.getBillPayment().getReceiverBankAccount().getAccountNumber());
             } catch (Exception e) {
-                return (BaseResponse<?>) ResponseEntity.internalServerError();
+                return buildErrorResponse("Internal server error");
             }
         } else {
-            return (BaseResponse<?>) ResponseEntity.badRequest();
+            return buildErrorResponse("Bad request - unsupported content type");
         }
     }
 
