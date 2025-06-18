@@ -218,7 +218,6 @@ public class PaymentFlip {
             throw new RuntimeException("Invalid token from callback");
         }
 
-
         // Konfigurasi mapper
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
