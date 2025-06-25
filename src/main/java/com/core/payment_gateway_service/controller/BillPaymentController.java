@@ -40,18 +40,16 @@ public class BillPaymentController {
     private final PaymentGatewayTransactionRepository paymentGatewayTransactionRepository;
 
     @PostMapping(value = "/process-bill-payment", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FlipResponse> processBillPayment(@RequestBody BillPaymentRequest request) {
+    BaseResponse<String> processBillPayment(@RequestBody BillPaymentRequest request) {
         try {
             FlipResponse response = paymentFlip.billProses(request);
 
             if (response == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new FlipResponse("ERROR", "Response from Flip is null"));
+                return buildErrorResponse("Internal server error");
             }
-            return ResponseEntity.ok(response);
+            return buildSuccessResponse("SUCCESS");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new FlipResponse("ERROR", e.getMessage()));
+            return buildErrorResponse("Bad request - unsupported content type");
         }
     }
 
