@@ -6,11 +6,11 @@ import com.core.payment_gateway_service.entity.BillPayment;
 import com.core.payment_gateway_service.repository.PaymentGatewayTransactionRepository;
 import com.core.payment_gateway_service.service.BillPaymentService;
 import com.core.payment_gateway_service.service.PaymentFlip;
+import com.core.payment_gateway_service.utils.BaseResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +18,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.io.IOException;
+
+import static com.core.payment_gateway_service.controller.BaseCRUDController.buildErrorResponse;
+import static com.core.payment_gateway_service.controller.BaseCRUDController.buildSuccessResponse;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -35,18 +40,16 @@ public class BillPaymentController {
     private final PaymentGatewayTransactionRepository paymentGatewayTransactionRepository;
 
     @PostMapping(value = "/process-bill-payment", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FlipResponse> processBillPayment(@RequestBody BillPaymentRequest request) {
+    BaseResponse<String> processBillPayment(@RequestBody BillPaymentRequest request) {
         try {
             FlipResponse response = paymentFlip.billProses(request);
 
             if (response == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new FlipResponse("ERROR", "Response from Flip is null"));
+                return buildErrorResponse("Internal server error");
             }
-            return ResponseEntity.ok(response);
+            return buildSuccessResponse("SUCCESS");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new FlipResponse("ERROR", e.getMessage()));
+            return buildErrorResponse("Bad request - unsupported content type");
         }
     }
 
@@ -66,7 +69,7 @@ public class BillPaymentController {
     }
 
     @PostMapping("/transbackV2")
-    public BaseResponse<?> handleBillPaymentV2(HttpServletRequest request) throws IOException {// Ambil data bill payment link dari service
+    BaseResponse<String> handleBillPaymentV2(HttpServletRequest request) throws IOException {// Ambil data bill payment link dari service
         String contentType = request.getContentType();
 
         if (contentType != null && contentType.contains("application/json")) {
@@ -77,7 +80,7 @@ public class BillPaymentController {
                 FlipResponse response = paymentFlip.billProses(billPaymentRequest);
 
                 if (response == null) {
-                    return BaseResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Response from Flip is null");
+                    return buildSuccessResponse(paymentFlip.billProses(billPaymentRequest));
                 }
 
                 // Hardcode token
@@ -92,12 +95,12 @@ public class BillPaymentController {
                 // Langsung panggil callback secara internal
                 paymentFlip.callback(dataJson, token);
 
-                return BaseResponse.ok(response.getBillPayment().getReceiverBankAccount().getAccountNumber());
+                return buildSuccessResponse(response.getBillPayment().getReceiverBankAccount().getAccountNumber());
             } catch (Exception e) {
-                return BaseResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                return buildErrorResponse("Internal server error");
             }
         } else {
-            return BaseResponse.error(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported content type");
+            return buildErrorResponse("Bad request - unsupported content type");
         }
     }
 
@@ -112,7 +115,7 @@ public class BillPaymentController {
         Sort.Direction direction = Sort.Direction.fromOptionalString(sortDirection).orElse(Sort.Direction.DESC);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         Page<BillPayment> result = paymentFlip.findAllViewsByRequestId(bilPaymentSearch, pageable);
-        return BaseResponse.ok(result);
+        return buildSuccessResponse(result);
     }
 
     @PutMapping("/update/{billId}")
@@ -121,7 +124,7 @@ public class BillPaymentController {
             @RequestBody BillPaymentRequest request) {
 
         BillPaymentResponse updatedBill = paymentFlip.updateBill(billId, request);
-        return BaseResponse.ok(updatedBill);
+        return buildSuccessResponse(updatedBill);
     }
 
     @GetMapping("/get/{billId}")    
@@ -129,11 +132,11 @@ public class BillPaymentController {
             @PathVariable String billId
     ) {
         BillPaymentResponse getBillId = paymentFlip.getBillId(billId);
-        return BaseResponse.ok(getBillId);
+        return buildSuccessResponse(getBillId);
     }
 
     @GetMapping("/link/{linkId}")
     public ResponseEntity<?> getBillPaymentLink(@PathVariable String linkId) {
-        return billPaymentService.getBillPaymentLink(linkId, "", "", "");
+        return billPaymentService.getBillPaymentLink(linkId, "", "3908c14e-2b7f-4d2b-ae3c-3f44e3c21e3a", "");
     }
 }
